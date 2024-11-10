@@ -1,7 +1,9 @@
 import {
+  GoogleAuthProvider,
   createUserWithEmailAndPassword,
   onAuthStateChanged,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
 } from "firebase/auth";
 import React, { createContext, useEffect, useState } from "react";
@@ -9,26 +11,37 @@ import { auth } from "../firebase.init";
 
 export const AuthContext = createContext(null);
 
+const googleProvider = new GoogleAuthProvider()
+
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const name = "potato is alu ";
+  const [loading,setLoading] = useState(true);
+ 
 
   const createUser = (email, password) => {
+    setLoading(true);
     return createUserWithEmailAndPassword(auth, email, password);
   };
 
   const signInUser = (email, password) => {
+    setLoading(true);
     return signInWithEmailAndPassword(auth, email, password);
   };
 
+  const signInWithGoogle = () => {
+    return signInWithPopup(auth,googleProvider)
+  }
+
   const signOutUser = () =>{
-    signOut(auth)
+    setLoading(true);
+    return signOut(auth);
   }
 
   useEffect(() => {
   const unSubscribe = onAuthStateChanged(auth,(currentUser) => {
     console.log('current user',currentUser)
     setUser(currentUser)
+    setLoading(false);
   })
 
   return ()=>{
@@ -38,22 +51,14 @@ const AuthProvider = ({ children }) => {
 
   },[])
 
-  // onAuthStateChanged(auth, (currentUser) => {
-  //   if (currentUser) {
-  //     console.log("current user logged in",currentUser);
-  //     setUser(currentUser)
-  //   } else {
-  //     console.log("no user found");
-  //     setUser(null)
-  //   }
-  // });
-
   const authInfo = {
-    name,
+    
     user,
+    loading,
     createUser,
     signInUser,
-    signOutUser
+    signOutUser,
+    signInWithGoogle
     
   };
 
